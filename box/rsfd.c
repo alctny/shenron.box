@@ -13,12 +13,19 @@
 #include <unistd.h>
 #include <wchar.h>
 
-char *path_rename(char *old);  // 移除文件名中的特殊字符
-int is_dir(char *path);        // 判断 path 是否指向文件夹，是则返回 1, 否则返回 0
-int is_reg(char *path);        // 判断 path 是否指向普通文件，是则返回 1, 否则返回 0
-int rsfd(char *file_path, char *spe);  // 删除文件中的特殊符号和指定符号, 返回值 1 表示成功, 0 表示失败
-int rm_invaild_chars(char *des, char *src);  // 移除 src 中的特殊字符特殊字符, 特殊字符由 invaild_chars 所指定
-char *path_join(char *base_path, char *path);  // 路径拼接
+// 移除路径膜级文件（夹）中的特殊字符，并且返回新的路径名
+char *path_rename(char *old);
+// 判断 path 是否指向文件夹，是则返回 1, 否则返回 0 判断失败返回 -1
+int is_dir(char *path);
+// 判断 path 是否指向普通文件，是则返回 1, 否则返回, 0 判断失败返回 -1
+int is_reg(char *path);
+// 删除文件中的特殊符号和指定符号, 返回值 1 表示成功, 0 表示失败, 判断失败返回 -1
+int rsfd(char *file_path, char *spe);
+// 移除 src 中的非法字符特殊字符, 并将结果保存在 des当中, 特殊字符集由 invaild_chars 所指定
+int rm_invaild_chars(char *des, char *src);
+// 路径拼接
+char *path_join(char *base_path, char *path);
+// 移除 src 中的 spe 子串
 // char *rm_specific_chars(char *src, char *spe);  // 移除 src 中的 spe 子串, 并返回移除后的结果
 
 wchar_t *invaild_chars = L"，。【】（）()[]:：「」,|<>《》][;?\\ \"'－；！";
@@ -47,52 +54,44 @@ char *path_rename(char *path) {
 }
 
 // 隐藏文件视作保护文件，不做不允许对其进行重命名，避免带来不必要的麻烦
+// 但是，如果命令行传入的参数指向的是隐藏目录或当前已经处于隐藏目录当中
+// 则认为用户已经完全明白并且接受了可能带来的风险
 int rsfd(char *path, char *spe) {
   DIR *dir;
   struct dirent *de;
-
-  printf("%s\n", path);
-
-  // 有枣没枣打三杆子
+  // 有枣没枣打三杆子，因为无论是普通文件还是目录都需要删除非法字符，因
+  // 此此处并不需要提前判断，直接重命名，然后判断
   path = path_rename(path);
-  if (is_reg(path) == 0) {
+  if (is_reg(path)) {
     return 0;
   }
   if (!is_dir(path)) {
     return -1;
   }
-
   dir = opendir(path);
   if (NULL == dir) {
     return -1;
   }
-
   while ((de = readdir(dir))) {
     if ('.' == *(de->d_name)) continue;
     if (rsfd(path_join(path, de->d_name), spe) != 0) return -1;
   }
 
-  closedir(dir);
-
-  return 0;
+  return closedir(dir);
 }
 
-// 判断路径是不是文件夹
 int is_dir(char *path) {
   struct stat st;
   return stat(path, &st) == 0 ? S_ISDIR(st.st_mode) : -1;
 }
 
-// 判断路径是不是普通文件
 int is_reg(char *path) {
   struct stat st;
   int res;
   res = stat(path, &st);
-
   return res == 0 ? S_ISREG(st.st_mode) : -1;
 }
 
-// 移除字符串中的非法字符
 int rm_invaild_chars(char *des, char *src) {
   wchar_t *ws = (wchar_t *)malloc(sizeof(wchar_t) * (strlen(src) + 1));
   wchar_t *res_ws = (wchar_t *)malloc(sizeof(wchar_t) * (strlen(src) + 1));
@@ -111,7 +110,6 @@ int rm_invaild_chars(char *des, char *src) {
   return 0;
 }
 
-// 路径字拼接
 char *path_join(char *base_path, char *path) {
   int len = strlen(base_path) + strlen(path) + 1;
   char *res = (char *)malloc(len * sizeof(char *));
@@ -122,16 +120,13 @@ char *path_join(char *base_path, char *path) {
   return res;
 }
 
-// 初始化全局变量
 void init(int argc, char *argv[]) {
   switch (argc) {
     case 1:
-      // 删除当前目录下所有文件名中的特殊字符，和通过参数传入的字符
       path = ".";
       specific = argv[1];
       break;
     case 3:
-      // 删除指定目录下所有文件名中的特殊字符，和通过参数传入的字符
       path = argv[1];
       specific = argv[2];
       break;
@@ -143,13 +138,6 @@ void init(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  int code;
-  char *path = "/home/ant/codespace/lwifew/shenron.box/box/test";
-
   init(argc, argv);
-  code = rsfd(path, specific);
-
-  printf("%d\n", code);
-  printf("%d\n", is_reg(path));
-  return 0;
+  return rsfd(path, specific);
 }

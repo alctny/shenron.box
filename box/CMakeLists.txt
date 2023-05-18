@@ -6,10 +6,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(rsfn)
-target_sources(rsfn
-PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rsfn.c
-)
-# target_include_directories(rsfn
-# PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-# )
+# 递归删除文件名中的特殊字符
+add_executable(rsfd ${CMAKE_CURRENT_SOURCE_DIR}/rsfd.c)
+
+# 剩余工作时间提示
+add_executable(sina ${CMAKE_CURRENT_SOURCE_DIR}/offduty.c)
+
