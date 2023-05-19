@@ -14,7 +14,7 @@
 #include <wchar.h>
 
 // 移除路径膜级文件（夹）中的特殊字符，并且返回新的路径名
-char *path_rename(char *old);
+char *batter_path(char *old);
 // 判断 path 是否指向文件夹，是则返回 1, 否则返回 0 判断失败返回 -1
 int is_dir(char *path);
 // 判断 path 是否指向普通文件，是则返回 1, 否则返回, 0 判断失败返回 -1
@@ -33,23 +33,25 @@ int invaild_chars_len = 0;
 char *path = "";
 char *specific = "";
 
-char *path_rename(char *path) {
+char *batter_path(char *path) {
+  char *new_path;
   char *base_path = dirname(strdup(path));
   char *old_name = basename(strdup(path));
-  char *new_name = (char *)malloc(sizeof(char) * strlen(old_name));
-  char *new_path;
+  char *new_name = (char *)calloc(strlen(old_name), sizeof(char));
+  if (NULL == new_name) return NULL;
 
-  if (rm_invaild_chars(new_name, old_name) != 0) {
+  if (0 != rm_invaild_chars(new_name, old_name)) {
+    free(new_name);
     return NULL;
   }
   if (strcmp(old_name, new_name) == 0) {
     return path;
   }
-
   new_path = path_join(base_path, new_name);
-  if (rename(path, new_path) != 0) {
+  if (0 != rename(path, new_path)) {
     return NULL;
   }
+  free(new_name);
   return new_path;
 }
 
@@ -59,9 +61,9 @@ char *path_rename(char *path) {
 int rsfd(char *path, char *spe) {
   DIR *dir;
   struct dirent *de;
-  // 有枣没枣打三杆子，因为无论是普通文件还是目录都需要删除非法字符，因
-  // 此此处并不需要提前判断，直接重命名，然后判断
-  path = path_rename(path);
+  // 有枣没枣打三杆子，因为无论是普通文件还是目录都需要删除非法字符
+  // 因此，此处并不需要提前判断，直接重命名，然后判断
+  path = batter_path(path);
   if (is_reg(path)) {
     return 0;
   }
@@ -93,12 +95,19 @@ int is_reg(char *path) {
 }
 
 int rm_invaild_chars(char *des, char *src) {
-  wchar_t *ws = (wchar_t *)malloc(sizeof(wchar_t) * (strlen(src) + 1));
-  wchar_t *res_ws = (wchar_t *)malloc(sizeof(wchar_t) * (strlen(src) + 1));
+  wchar_t *ws = (wchar_t *)calloc(strlen(src), sizeof(wchar_t));
+  wchar_t *res_ws = (wchar_t *)calloc(strlen(src), sizeof(wchar_t));
   int res_len = 0, i = 0, j = 0, ws_len = 0, code = 0;
+
+  if (NULL == ws) return -1;
+  if (NULL == res_ws) {
+    free(ws);
+    return -1;
+  }
 
   mbstowcs(ws, src, strlen(src));
   ws_len = wcslen(ws);
+
   for (i = 0; i < ws_len; i++) {
     for (j = 0; j < invaild_chars_len; j++) {
       if (ws[i] == invaild_chars[j]) goto cntn;
@@ -106,14 +115,15 @@ int rm_invaild_chars(char *des, char *src) {
     res_ws[res_len++] = ws[i];
   cntn:;
   }
-  wcstombs(des, res_ws, 10000);
+
+  wcstombs(des, res_ws, wcslen(res_ws) * sizeof(wchar_t));
+  free(ws);
+  free(res_ws);
   return 0;
 }
 
 char *path_join(char *base_path, char *path) {
-  int len = strlen(base_path) + strlen(path) + 1;
-  char *res = (char *)malloc(len * sizeof(char *));
-
+  char *res = (char *)calloc((strlen(base_path) + strlen(path) + 1) * sizeof(char), sizeof(char));
   strcpy(res, base_path);
   strcat(res, "/");
   strcat(res, path);
@@ -123,6 +133,9 @@ char *path_join(char *base_path, char *path) {
 void init(int argc, char *argv[]) {
   switch (argc) {
     case 1:
+      path = ".";
+      break;
+    case 2:
       path = ".";
       specific = argv[1];
       break;
