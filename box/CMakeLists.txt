@@ -4,6 +4,7 @@ set ( CMAKE_C_FLAGS "-D_BSD_SOURCE -D_DEFAULT_SOURCE")
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # 递归删除文件名中的特殊字符

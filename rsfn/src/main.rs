@@ -25,7 +25,7 @@ fn rsfn(p: &str, pam: &str) {
         match f.file_type().unwrap().is_dir() {
             true => {
                 let f = &f.file_name().to_string_lossy().to_string();
-                let nf = term(f).replace(pam, "");
+                let nf = term(f).replace(pam, "").to_lowercase();
                 let op = Path::new(p).join(f).to_string_lossy().to_string();
                 let np = Path::new(p).join(nf).to_string_lossy().to_string();
                 fs::rename(op, &np).unwrap();
@@ -33,7 +33,7 @@ fn rsfn(p: &str, pam: &str) {
             }
             false => {
                 let f = &f.file_name().to_string_lossy().to_string();
-                let nf = term(f).replace(pam, "");
+                let nf = term(f).replace(pam, "").to_lowercase();
                 let op = Path::new(p).join(f).to_string_lossy().to_string();
                 let np = Path::new(p).join(nf).to_string_lossy().to_string();
                 fs::rename(op, &np).unwrap();
