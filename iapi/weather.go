@@ -4,11 +4,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -47,37 +45,27 @@ type (
 	}
 )
 
-func exit() {
-	fmt.Println("have a good day")
-	os.Exit(1)
-}
+func weather() (*Data, error) {
+	client := resty.New()
+	var response Data
+	_, err := client.R().SetResult(&response).Get(api)
+	return &response, err
 
-func ckErr(err error) {
-	if err != nil {
-		exit()
-	}
-}
-
-func weather() {
-	resp, err := http.Get(api)
-	ckErr(err)
-	if resp.StatusCode != http.StatusOK {
-		exit()
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	ckErr(err)
-	var weatherInfo Data
-	err = json.Unmarshal(body, &weatherInfo)
-	ckErr(err)
-
-	if weatherInfo.Status != "1" || len(weatherInfo.Lives) < 1 {
-		exit()
-	}
-	local := weatherInfo.Lives[0]
-	fmt.Println(local.City, local.Weather, local.Temperature_float+"°C")
+	// fmt.Println()
 }
 
 func main() {
-	weather()
+	weather, err := weather()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if weather.Status != "1" || len(weather.Lives) < 1 {
+		fmt.Println("no weather info")
+		return
+	}
+	local := weather.Lives[0]
+	wstr := fmt.Sprintf("%s %s %s°C", local.City, local.Weather, local.Temperature_float)
+	fmt.Println(wstr)
 }
