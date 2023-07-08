@@ -13,3 +13,6 @@ add_executable(rsfd ${CMAKE_CURRENT_SOURCE_DIR}/rsfd.c)
 # 剩余工作时间提示
 add_executable(sina ${CMAKE_CURRENT_SOURCE_DIR}/offduty.c)
 
+# 生成指定范围内的随机顺序数列
+add_executable(rseq ${CMAKE_CURRENT_SOURCE_DIR}/random_sequence.c)
+
