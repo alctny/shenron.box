@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	key   = "6f1cec4d0a55e8b59afe70567327661b"
-	_api  = "https://restapi.amap.com/v3/weather/weatherInfo?key=%s&city=%s"
-	wuhou = "510107"
+	key  = "6f1cec4d0a55e8b59afe70567327661b"
+	_api = "https://restapi.amap.com/v3/weather/weatherInfo?key=%s&city=%s"
+	// 510107(成都-武侯) 510116(成都-双流)
+	wuhou = "510116"
 )
 
 var api string
