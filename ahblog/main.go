@@ -1,7 +1,15 @@
 package main
 
-import "ahbolog/dao"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
-	dao.TTTTT()
+	t := time.Tick(1 * time.Second)
+	var i = 0
+	for range t {
+		fmt.Println(i)
+		i++
+	}
 }
