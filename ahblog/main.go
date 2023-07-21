@@ -1,15 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"ahblog/db"
 )
 
 func main() {
-	t := time.Tick(1 * time.Second)
-	var i = 0
-	for range t {
-		fmt.Println(i)
-		i++
-	}
+	// server.ServerStart(
+	db.DBTest()
 }
