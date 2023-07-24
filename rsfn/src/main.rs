@@ -1,24 +1,24 @@
-use std::env::args;
+use clap::Parser;
 use std::fs;
 use std::path::Path;
 
-fn main() {
-    let arg: Vec<String> = args().collect();
-    let path: &str;
-    let pam: &str;
-    match arg.len() {
-        1 => (path, pam) = (".", ""),
-        2 => (path, pam) = (".", &arg[1]),
-        3 => (path, pam) = (&arg[1], &arg[2]),
-        _ => {
-            eprintln!("too args");
-            return;
-        }
-    };
-    rsfn(path, pam);
+#[derive(Parser)]
+#[command(author, version, about, long_about=None)]
+struct RsfnArg {
+    #[arg(long, default_value_t=String::from("."))]
+    path: String,
+    #[arg(long, default_value_t=String::from(""))]
+    pam: String,
+    #[arg(long, default_value_t=String::from(""))]
+    to: String,
 }
 
-fn rsfn(p: &str, pam: &str) {
+fn main() {
+    let arg = RsfnArg::parse();
+    rsfn(&(arg.path), &(arg.pam), &(arg.to));
+}
+
+fn rsfn(p: &str, pam: &str, to: &str) {
     let dir = fs::read_dir(p).expect("open dir error");
     for file in dir
         .filter_map(Result::ok)
@@ -27,18 +27,18 @@ fn rsfn(p: &str, pam: &str) {
         match file.file_type().unwrap().is_dir() {
             true => {
                 let file_name = &file.file_name().to_string_lossy().to_string();
-                let new_file_name = term(&file_name.replace(pam, "")).to_lowercase();
+                let new_file_name = term(&file_name.replace(pam, to)).to_lowercase();
                 let old_path = Path::new(p).join(file_name).to_string_lossy().to_string();
                 let new_path = Path::new(p)
                     .join(new_file_name)
                     .to_string_lossy()
                     .to_string();
                 fs::rename(old_path, &new_path).unwrap();
-                rsfn(&new_path, pam);
+                rsfn(&new_path, pam, to);
             }
             false => {
                 let file_name = &file.file_name().to_string_lossy().to_string();
-                let new_file_name = term(&file_name.replace(pam, "")).to_lowercase();
+                let new_file_name = term(&file_name.replace(pam, to)).to_lowercase();
                 let old_path = Path::new(p).join(file_name).to_string_lossy().to_string();
                 let new_path = Path::new(p)
                     .join(new_file_name)
