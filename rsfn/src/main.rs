@@ -7,10 +7,16 @@ use std::path::Path;
 struct RsfnArg {
     #[arg(long, default_value_t=String::from("."))]
     path: String,
+    
     #[arg(long, default_value_t=String::from(""))]
     pam: String,
+    
+    #[arg(long, default_value_t=String::from(""))]
     #[arg(long, default_value_t=String::from(""))]
     to: String,
+
+    #[arg(long, default_value_t=String::from(""))]
+    help: String,
 }
 
 fn main() {
