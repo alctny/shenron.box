@@ -16,3 +16,6 @@ add_executable(sina ${CMAKE_CURRENT_SOURCE_DIR}/offduty.c)
 # 生成指定范围内的随机顺序数列
 add_executable(rseq ${CMAKE_CURRENT_SOURCE_DIR}/random_sequence.c)
 
+# 生成随机数矩阵，用于数字记忆训练
+add_executable(rngst ${CMAKE_CURRENT_SOURCE_DIR}/rngst.c)
+
