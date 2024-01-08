@@ -8,51 +8,12 @@
 #include <time.h>
 #include <unistd.h>
 
-const int LINE = 20;
-const int CAP = 25;
 const char* DATA_DIR = "document/rngst_data";
+const int LINX_MAX = 3 * 50;
+const char* OPTSTRING = "s:";
 
-void gen_matrix(int n, int m, int matrix[n][m]);
-void show_matrix(int n, int m, int matrix[n][m]);
-int check_file(char* path);
-void matrix_to_string(int n, int m, int matrix[n][m], char* str);
-
-int main(int argc, char const* argv[]) {
-  char* path = (char*)malloc(128);
-  int status = check_file(path);
-  if (status < 0) {
-    // read file faild
-    return -1;
-  } else if (status == 1) {
-    // file exists, read from file
-    FILE* f = fopen(path, "r");
-    if (f == NULL) {
-      perror("rngst open file faild");
-      return -1;
-    }
-    char* str = (char*)calloc(sizeof(char), (CAP + 1) * LINE * 3);
-    fread(str, sizeof(char), (CAP + 1) * LINE * 3, f);
-    fclose(f);
-    printf("%s", str);
-    free(path);
-    return 0;
-  }
-  // file noe exists, gen and write to file
-  int data[LINE][CAP];
-  gen_matrix(LINE, CAP, data);
-  FILE* fp = fopen(path, "w");
-  if (fp == NULL) {
-    perror("rngst open file faild");
-    return -1;
-  }
-  char* str = (char*)calloc(sizeof(char), (CAP + 1) * LINE * 3);
-  matrix_to_string(LINE, CAP, data, str);
-  fputs(str, fp);
-  fclose(fp);
-  printf("%s\n", str);
-  free(path);
-  return 0;
-}
+extern char* optarg;
+extern int optind, opterr, optopt;
 
 void gen_matrix(int n, int m, int matrix[n][m]) {
   srand(time(NULL));
@@ -107,5 +68,106 @@ int check_file(char* path) {
   if (stat(path, &buffer) == 0) {
     return 1;
   }
+  return 0;
+}
+
+int read_from_file(char* path) {
+  FILE* f = fopen(path, "r");
+  if (f == NULL) {
+    return -1;
+  }
+  char str[LINX_MAX];
+  while (fgets(str, LINX_MAX, f) != NULL) {
+    printf("%s", str);
+  }
+  fclose(f);
+  return 0;
+}
+
+int gen_and_write_to_file(char* path, int line, int cap) {
+  int data[line][cap];
+  gen_matrix(line, cap, data);
+  FILE* fp = fopen(path, "w");
+  if (fp == NULL) {
+    perror("rngst open file faild");
+    return -1;
+  }
+  char* str = (char*)calloc(sizeof(char), (cap + 1) * line * 3);
+  matrix_to_string(line, cap, data, str);
+  fputs(str, fp);
+  fclose(fp);
+  printf("%s\n", str);
+  free(str);
+  return 0;
+}
+
+void usage() {
+  printf("Usage: rngst [-s line x cap]\n");
+  printf("  -s line x cap: set the size of matrix\n");
+}
+
+int get_size_from_args(int argc, char const* argv[], int* line, int* cap) {
+  if (argc < 2) {
+    *line = 20;
+    *cap = 25;
+    return 0;
+  }
+
+  int opt;
+  while ((opt = getopt(argc, argv, OPTSTRING)) != -1) {
+    switch (opt) {
+      case 's':
+        int ret = sscanf(optarg, "%dx%d", line, cap);
+        if (ret != 2) {
+          return -1;
+        }
+        break;
+      case '?':
+        return -1;
+      default:
+        break;
+        return 0;
+    }
+  }
+
+  return 0;
+}
+
+int main(int argc, char const* argv[]) {
+  char* path = (char*)malloc(128);
+  int exists = check_file(path);
+  int status = 0;
+  switch (exists) {
+    case 1:
+      if (read_from_file(path) != 0) {
+        perror("read file error: ");
+        status = -1;
+      }
+      break;
+    case 0:
+      int line = 0;
+      int cap = 0;
+      int ret = get_size_from_args(argc, argv, &line, &cap);
+      if (ret != 0) {
+        usage();
+        status = -1;
+        break;
+      }
+
+      ret = gen_and_write_to_file(path, line, cap);
+      if (ret != 0) {
+        status = -1;
+        perror("write file error: ");
+      }
+      break;
+    case -1:
+      status = -1;
+      break;
+    default:
+      perror("some error happend in check file");
+      status = -1;
+      break;
+  }
+  free(path);
   return 0;
 }
