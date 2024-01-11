@@ -7,6 +7,7 @@ from typing import List
 from typing import Dict
 import sys
 import csv
+import argparse
 
 # 首页
 INDEX = "https://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2022/index.html"
@@ -93,9 +94,13 @@ def get_adcode(url: str) -> List[List[str]]:
     for cct in content.select(selecter):
       td = cct.select("td")
       adcode, address = td[0].text, td[1].text
+      data.append([address, adcode])
+      a = td[0].select_one("a")
+      if not a:
+        print(f"\r{address:40}\tOK", end="", flush=True)
+        continue
       href = td[0].select_one("a").get("href")
       nextLvUrl = "/".join(url.split("/")[:-1]) + "/" + href
-      data.append([address, adcode])
       data += get_adcode(nextLvUrl)
       print(f"\r{address:40}\tOK", end="", flush=True)
 
@@ -137,19 +142,13 @@ test_url = [
 
 
 if __name__ == "__main__":
-  len = len(sys.argv)
-  if len == 1:
-    adcode_to_csv(INDEX, False)
-  elif len == 2:
-    adcode_to_csv(sys.argv[1], False)
-  elif len == 3:
-    sigle = sys.argv[2]
-    adcode_to_csv(sys.argv[1], sys.argv[2])
-  else:
-    usage()
-    sys.exit(1)
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-u", "--url", help="地理编码首页地址")
+  parser.add_argument("-s", "--sigle", help="是否保存为单个文件，可选值为 True/False，默认为 False(请注意大小写)")
 
-  # adcode_to_csv(test_url[3], False)
-  # data = get_adcode(test_url[3])
-  # with open(DATA_PATH, "w", encoding="utf-8") as f:
-  # csv.writer(f).writerows(data)
+  try:
+    args = parser.parse_args()
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  adcode_to_csv(args.url, args.sigle)
