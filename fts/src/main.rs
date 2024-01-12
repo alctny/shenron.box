@@ -71,9 +71,10 @@ fn file_suffix(path: &str) -> Option<String> {
 }
 
 // show statistics by count
-fn show_stat(st: &HashMap<StatKind, u32>) {
+fn show_stat(st: &HashMap<StatKind, u32>, less: u32) {
     let mut st: Vec<Stat> = st
         .into_iter()
+        .filter(|s| *s.1 >= less)
         .map(|s| Stat {
             kind: s.0.to_string(),
             count: *s.1,
@@ -93,5 +94,11 @@ fn main() {
         Some(path) => stat_dir(path, &mut stat),
         None => panic!("get absolute path failed"),
     }
-    show_stat(&stat);
+
+    let less = if args.len() > 2 {
+        args[2].parse().unwrap()
+    } else {
+        0
+    };
+    show_stat(&stat, less);
 }
