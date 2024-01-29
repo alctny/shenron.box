@@ -18,9 +18,12 @@ python nbs_adcode.py [url] [sigle]
 
 ## 雀魂爬虫脚本（maj_soul.py）
 
-*maj_soul.py* 可用爬取[雀魂](https://game.maj-soul.com/1/)角色信息，资讯由[雀魂 DB](https://mahjongsoul.club)和[雀魂攻略](https://mjsinfo.pages.dev)两个网站提供。
+*maj_color.py* 可用爬取[雀魂](https://game.maj-soul.com/1/)角色对应颜色编码，资讯由[雀魂 DB](https://mahjongsoul.club)提供
 
-爬取内容包括（施工当中）：
+
+## maj_soul.py
+
+爬取内容包括（施工当中），数据由[雀魂攻略](https://mjsinfo.pages.dev) 提供：
 
 - 雀姬基本信息
 - 雀姬表情图
